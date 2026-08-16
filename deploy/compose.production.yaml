@@ -1,0 +1,33 @@
+name: luxe-bff
+
+services:
+  bff:
+    image: ${BFF_IMAGE:?Set BFF_IMAGE}
+    container_name: luxe-bff
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      BFF_PORT: "16801"
+      LUXE_API_URL: ${LUXE_API_URL:-http://luxe-api:16800}
+      JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=75}
+    expose:
+      - "16801"
+    networks:
+      - luxe-net
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  luxe-net:
+    external: true

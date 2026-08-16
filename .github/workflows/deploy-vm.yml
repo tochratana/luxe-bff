@@ -1,0 +1,116 @@
+name: Build and deploy BFF
+
+on:
+  push:
+    branches:
+      - deploy
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: luxe-bff-production
+  cancel-in-progress: false
+
+env:
+  IMAGE_REPOSITORY: ${{ vars.DOCKERHUB_USERNAME }}/luxe-bff
+  BFF_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/luxe-bff:${{ github.sha }}
+  VM_HOST: ${{ vars.VM_HOST }}
+  VM_USER: ${{ vars.VM_USER }}
+  VM_SSH_PORT: ${{ vars.VM_SSH_PORT }}
+
+jobs:
+  deploy:
+    name: Build and deploy BFF
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    environment:
+      name: production
+      url: https://bff.luxe-kh.online
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build, test, and push image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.BFF_IMAGE }}
+            ${{ env.IMAGE_REPOSITORY }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Configure SSH
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "${{ secrets.VM_SSH_PRIVATE_KEY }}" > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "${{ secrets.VM_KNOWN_HOSTS }}" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
+
+          {
+            echo "Host production-vm"
+            echo "  HostName $VM_HOST"
+            echo "  User $VM_USER"
+            echo "  Port $VM_SSH_PORT"
+            echo "  IdentityFile $HOME/.ssh/id_ed25519"
+            echo "  StrictHostKeyChecking yes"
+            echo "  IdentitiesOnly yes"
+          } > "$HOME/.ssh/config"
+
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Deploy BFF
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          ssh production-vm 'mkdir -p "$HOME/luxe-bff"'
+          scp deploy/compose.production.yaml \
+            production-vm:luxe-bff/compose.yaml.next
+
+          ssh production-vm "bash -s -- '$BFF_IMAGE'" <<'REMOTE_SCRIPT'
+          set -Eeuo pipefail
+
+          image="$1"
+          cd "$HOME/luxe-bff"
+
+          docker network inspect luxe-net >/dev/null
+
+          BFF_IMAGE="$image" \
+            docker compose -f compose.yaml.next config --quiet
+
+          mv compose.yaml.next compose.yaml
+
+          if ! BFF_IMAGE="$image" docker compose -f compose.yaml \
+            up -d \
+            --pull always \
+            --no-deps \
+            --force-recreate \
+            --wait \
+            --wait-timeout 120 \
+            bff; then
+            BFF_IMAGE="$image" \
+              docker compose -f compose.yaml logs --tail=200 bff
+            exit 1
+          fi
+
+          BFF_IMAGE="$image" docker compose -f compose.yaml ps bff
+          REMOTE_SCRIPT

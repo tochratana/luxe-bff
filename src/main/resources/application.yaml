@@ -1,0 +1,38 @@
+server:
+  port: ${BFF_PORT:16801}
+  forward-headers-strategy: framework
+  shutdown: graceful
+
+spring:
+  application:
+    name: luxe-bff
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: luxe-api
+              uri: ${LUXE_API_URL:http://localhost:16800}
+              predicates:
+                - Path=/luxe-api/**
+              filters:
+                - RewritePath=/luxe-api/?(?<segment>.*), /$\{segment}
+            - id: luxe-admin
+              uri: ${LUXE_ADMIN_URL:http://localhost:3001}
+              predicates:
+                - Host=${LUXE_ADMIN_HOST_PATTERN:admin.localhost:*}
+                - Path=/**
+            - id: luxe-ui
+              uri: ${LUXE_UI_URL:http://localhost:3000}
+              predicates:
+                - Path=/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
