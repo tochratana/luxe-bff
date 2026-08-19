@@ -17,6 +17,7 @@ spring:
             provider: keycloak
             client-id: ${KEYCLOAK_CLIENT_ID:luxe-ui}
             client-secret: ${KEYCLOAK_CLIENT_SECRET:BjkBavtwH7UGEycvstmaI1MCoTbzEwpr}
+            client-authentication-method: client_secret_post
             scope:
               - openid
               - profile
