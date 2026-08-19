@@ -6,10 +6,12 @@ services:
     container_name: luxe-bff
     restart: unless-stopped
     environment:
-      SPRING_PROFILES_ACTIVE: prod
       BFF_PORT: "16801"
       LUXE_API_URL: ${LUXE_API_URL:-http://luxe-api:16800}
       JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=75}
+      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI:?Set KEYCLOAK_ISSUER_URI}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:?Set KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:?Set KEYCLOAK_CLIENT_SECRET}
     expose:
       - "16801"
     networks:

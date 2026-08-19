@@ -6,6 +6,21 @@ server:
 spring:
   application:
     name: luxe-bff
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${KEYCLOAK_ISSUER_URI:https://keycloak.luxe-kh.online/realms/luxe}
+        registration:
+          keycloak:
+            provider: keycloak
+            client-id: ${KEYCLOAK_CLIENT_ID:luxe-ui}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET:BjkBavtwH7UGEycvstmaI1MCoTbzEwpr}
+            scope:
+              - openid
+              - profile
+              - email
   cloud:
     gateway:
       server:
@@ -17,6 +32,7 @@ spring:
                 - Path=/luxe-api/**
               filters:
                 - RewritePath=/luxe-api/?(?<segment>.*), /$\{segment}
+                - TokenRelay=
             - id: luxe-admin
               uri: ${LUXE_ADMIN_URL:http://localhost:3001}
               predicates:

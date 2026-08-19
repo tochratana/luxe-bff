@@ -86,20 +86,30 @@ jobs:
           scp deploy/compose.production.yaml \
             production-vm:luxe-bff/compose.yaml.next
 
-          ssh production-vm "bash -s -- '$BFF_IMAGE'" <<'REMOTE_SCRIPT'
+          ssh production-vm "bash -s -- '$BFF_IMAGE' '${{ vars.KEYCLOAK_ISSUER_URI }}' '${{ vars.KEYCLOAK_CLIENT_ID }}' '${{ secrets.KEYCLOAK_CLIENT_SECRET }}'" <<'REMOTE_SCRIPT'
           set -Eeuo pipefail
 
           image="$1"
+          kc_issuer="$2"
+          kc_client_id="$3"
+          kc_secret="$4"
           cd "$HOME/luxe-bff"
 
           docker network inspect luxe-net >/dev/null
 
           BFF_IMAGE="$image" \
+          KEYCLOAK_ISSUER_URI="$kc_issuer" \
+          KEYCLOAK_CLIENT_ID="$kc_client_id" \
+          KEYCLOAK_CLIENT_SECRET="$kc_secret" \
             docker compose -f compose.yaml.next config --quiet
 
           mv compose.yaml.next compose.yaml
 
-          if ! BFF_IMAGE="$image" docker compose -f compose.yaml \
+          if ! BFF_IMAGE="$image" \
+            KEYCLOAK_ISSUER_URI="$kc_issuer" \
+            KEYCLOAK_CLIENT_ID="$kc_client_id" \
+            KEYCLOAK_CLIENT_SECRET="$kc_secret" \
+            docker compose -f compose.yaml \
             up -d \
             --pull always \
             --no-deps \
