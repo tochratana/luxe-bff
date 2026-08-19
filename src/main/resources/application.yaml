@@ -3,6 +3,10 @@ server:
   forward-headers-strategy: framework
   shutdown: graceful
 
+luxe:
+  ui:
+    url: ${LUXE_UI_URL:https://www.luxe-kh.online}
+
 spring:
   application:
     name: luxe-bff

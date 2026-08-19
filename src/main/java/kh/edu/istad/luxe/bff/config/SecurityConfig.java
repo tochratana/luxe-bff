@@ -10,9 +10,13 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.http.HttpMethod;
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 public class SecurityConfig {
+
+    @Value("${luxe.ui.url:http://localhost:3000}")
+    private String uiUrl;
 
     @Bean
     SecurityWebFilterChain apiGateway(ServerHttpSecurity http, ReactiveClientRegistrationRepository clientRegistrationRepository) {
@@ -35,7 +39,7 @@ public class SecurityConfig {
     private ServerLogoutSuccessHandler oidcLogoutSuccessHandler(ReactiveClientRegistrationRepository clientRegistrationRepository) {
         OidcClientInitiatedServerLogoutSuccessHandler oidcLogoutSuccessHandler =
                 new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
-        oidcLogoutSuccessHandler.setPostLogoutRedirectUri("{baseUrl}");
+        oidcLogoutSuccessHandler.setPostLogoutRedirectUri(uiUrl);
         return oidcLogoutSuccessHandler;
     }
 }
