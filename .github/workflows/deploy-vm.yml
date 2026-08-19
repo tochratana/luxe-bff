@@ -86,7 +86,7 @@ jobs:
           scp deploy/compose.production.yaml \
             production-vm:luxe-bff/compose.yaml.next
 
-          ssh production-vm "bash -s -- '$BFF_IMAGE' '${{ vars.KEYCLOAK_ISSUER_URI }}' '${{ vars.KEYCLOAK_CLIENT_ID }}' '${{ secrets.KEYCLOAK_CLIENT_SECRET }}'" <<'REMOTE_SCRIPT'
+          ssh production-vm "bash -s -- '$BFF_IMAGE' '${{ secrets.KEYCLOAK_ISSUER_URI }}' '${{ secrets.KEYCLOAK_CLIENT_ID }}' '${{ secrets.KEYCLOAK_CLIENT_SECRET }}'" <<'REMOTE_SCRIPT'
           set -Eeuo pipefail
 
           image="$1"
