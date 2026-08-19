@@ -31,8 +31,22 @@ public class AuthController {
         log.info("Username: {}", principal.getAttributes().get("preferred_username"));
 
         return AuthenticatedUser.builder()
-                .username(principal.getAttributes().get("preferred_username").toString())
+                .username(resolveUsername(principal))
                 .isAuthenticated(true)
                 .build();
+    }
+
+    private String resolveUsername(OAuth2User principal) {
+        Object preferredUsername = principal.getAttributes().get("preferred_username");
+        if (preferredUsername instanceof String username && !username.isBlank()) {
+            return username;
+        }
+
+        Object email = principal.getAttributes().get("email");
+        if (email instanceof String emailAddress && !emailAddress.isBlank()) {
+            return emailAddress;
+        }
+
+        return principal.getName();
     }
 }
