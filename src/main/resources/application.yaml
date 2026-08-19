@@ -5,7 +5,7 @@ server:
 
 luxe:
   ui:
-    url: ${LUXE_UI_URL:https://www.luxe-kh.online}
+    url: ${LUXE_UI_URL:https://www.luxe-kh.online/}
 
 spring:
   application:
