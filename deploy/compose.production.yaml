@@ -12,7 +12,10 @@ services:
       KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI:?Set KEYCLOAK_ISSUER_URI}
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:?Set KEYCLOAK_CLIENT_ID}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:?Set KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_ADMIN_CLIENT_ID: ${KEYCLOAK_ADMIN_CLIENT_ID:-luxe-admin}
       LUXE_UI_URL: https://www.luxe-kh.online/
+      LUXE_ADMIN_PUBLIC_URL: ${LUXE_ADMIN_PUBLIC_URL:-https://admin.luxe-kh.online/}
+      OAUTH2_ADMIN_REDIRECT_URI: ${OAUTH2_ADMIN_REDIRECT_URI:-https://admin.luxe-kh.online/bff/login/oauth2/code/keycloak-admin}
     expose:
       - "16801"
     networks:

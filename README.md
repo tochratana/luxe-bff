@@ -48,6 +48,9 @@ origin under `/luxe-api/api/v1/**` for browser API requests.
 | `LUXE_ADMIN_URL` | `http://localhost:3001` | Luxe Admin upstream |
 | `LUXE_ADMIN_HOST_PATTERN` | `admin.localhost:*` | Host pattern routed to Luxe Admin |
 | `LUXE_UI_URL` | `http://localhost:3000` | Luxe UI upstream |
+| `KEYCLOAK_ADMIN_CLIENT_ID` | `luxe-admin` | PKCE client used for Admin BFF login |
+| `LUXE_ADMIN_PUBLIC_URL` | `https://admin.luxe-kh.online/` | Admin post-logout destination |
+| `OAUTH2_ADMIN_REDIRECT_URI` | `https://admin.luxe-kh.online/bff/login/oauth2/code/keycloak-admin` | Admin OAuth callback |
 
 ## Production
 

@@ -18,6 +18,9 @@ public class SecurityConfig {
     @Value("${luxe.ui.url:http://localhost:3000}")
     private String uiUrl;
 
+    @Value("${luxe.admin.public-url:http://localhost:3001}")
+    private String adminUrl;
+
     @Bean
     SecurityWebFilterChain apiGateway(ServerHttpSecurity http, ReactiveClientRegistrationRepository clientRegistrationRepository) {
         http.authorizeExchange(exchange -> exchange
@@ -29,16 +32,31 @@ public class SecurityConfig {
         http.oauth2Login(Customizer.withDefaults());
 
         http.logout(logout -> logout
-                .logoutSuccessHandler(oidcLogoutSuccessHandler(clientRegistrationRepository))
-        );
+                .requiresLogout(ServerWebExchangeMatchers.pathMatchers(
+                        HttpMethod.POST,
+                        "/logout",
+                        "/admin/logout"
+                ))
+                .logoutSuccessHandler(oidcLogoutSuccessHandler(clientRegistrationRepository)));
 
         return http.build();
     }
 
     private ServerLogoutSuccessHandler oidcLogoutSuccessHandler(ReactiveClientRegistrationRepository clientRegistrationRepository) {
-        OidcClientInitiatedServerLogoutSuccessHandler oidcLogoutSuccessHandler =
+        OidcClientInitiatedServerLogoutSuccessHandler uiLogoutSuccessHandler =
                 new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
-        oidcLogoutSuccessHandler.setPostLogoutRedirectUri(uiUrl);
-        return oidcLogoutSuccessHandler;
+        uiLogoutSuccessHandler.setPostLogoutRedirectUri(uiUrl);
+
+        OidcClientInitiatedServerLogoutSuccessHandler adminLogoutSuccessHandler =
+                new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
+        adminLogoutSuccessHandler.setPostLogoutRedirectUri(adminUrl);
+
+        return (exchange, authentication) -> {
+            String logoutPath = exchange.getExchange().getRequest().getPath().value();
+            ServerLogoutSuccessHandler selectedHandler = "/admin/logout".equals(logoutPath)
+                    ? adminLogoutSuccessHandler
+                    : uiLogoutSuccessHandler;
+            return selectedHandler.onLogoutSuccess(exchange, authentication);
+        };
     }
 }
