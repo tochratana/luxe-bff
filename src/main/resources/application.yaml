@@ -53,3 +53,7 @@ management:
     health:
       probes:
         enabled: true
+
+logging:
+  level:
+    org.springframework.security: DEBUG
