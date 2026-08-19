@@ -23,6 +23,7 @@ spring:
               - openid
               - profile
               - email
+              - roles
   cloud:
     gateway:
       server:
