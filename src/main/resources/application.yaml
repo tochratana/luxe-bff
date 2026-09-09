@@ -5,9 +5,9 @@ server:
 
 luxe:
   ui:
-    url: ${LUXE_UI_URL:https://www.luxe-kh.online/}
+    url: ${LUXE_UI_PUBLIC_URL:http://localhost:16801/}
   admin:
-    public-url: ${LUXE_ADMIN_PUBLIC_URL:https://admin.luxe-kh.online/}
+    public-url: ${LUXE_ADMIN_PUBLIC_URL:http://admin.localhost:16801/}
 
 spring:
   application:
@@ -17,13 +17,13 @@ spring:
       client:
         provider:
           keycloak:
-            issuer-uri: ${KEYCLOAK_ISSUER_URI:https://keycloak.luxe-kh.online/realms/luxe}
+            issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/luxe}
         registration:
           keycloak:
             provider: keycloak
             client-id: ${KEYCLOAK_CLIENT_ID:luxe-ui}
             client-secret: ${KEYCLOAK_CLIENT_SECRET}
-            redirect-uri: ${OAUTH2_REDIRECT_URI:https://www.luxe-kh.online/bff/login/oauth2/code/keycloak}
+            redirect-uri: ${OAUTH2_REDIRECT_URI:http://localhost:16801/bff/login/oauth2/code/keycloak}
             scope:
               - openid
               - profile
@@ -33,7 +33,7 @@ spring:
             provider: keycloak
             client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:luxe-admin}
             client-authentication-method: none
-            redirect-uri: ${OAUTH2_ADMIN_REDIRECT_URI:https://admin.luxe-kh.online/bff/login/oauth2/code/keycloak-admin}
+            redirect-uri: ${OAUTH2_ADMIN_REDIRECT_URI:http://admin.localhost:16801/bff/login/oauth2/code/keycloak-admin}
             scope:
               - openid
               - profile
@@ -73,4 +73,4 @@ management:
 
 logging:
   level:
-    org.springframework.security: DEBUG
+    org.springframework.security: INFO
