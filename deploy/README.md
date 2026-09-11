@@ -62,6 +62,16 @@ LUXE_BFF_URL=https://bff.luxe-kh.online
 Redeploy both projects after changing the environment variable because
 Next.js evaluates rewrites from `next.config.ts` during deployment.
 
+Allow both BFF callback URLs on the Keycloak client used by `luxe-bff`:
+
+```text
+https://www.luxe-kh.online/bff/login/oauth2/code/keycloak
+https://admin.luxe-kh.online/bff/login/oauth2/code/keycloak-admin
+```
+
+Also allow `https://www.luxe-kh.online/` and
+`https://admin.luxe-kh.online/` as valid post-logout redirect URIs.
+
 ## Smoke tests
 
 ```bash

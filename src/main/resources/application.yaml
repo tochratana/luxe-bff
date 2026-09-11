@@ -3,9 +3,42 @@ server:
   forward-headers-strategy: framework
   shutdown: graceful
 
+luxe:
+  ui:
+    url: ${LUXE_UI_PUBLIC_URL:http://localhost:16801/}
+  admin:
+    public-url: ${LUXE_ADMIN_PUBLIC_URL:http://admin.localhost:16801/}
+
 spring:
   application:
     name: luxe-bff
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:9090/realms/luxe}
+        registration:
+          keycloak:
+            provider: keycloak
+            client-id: ${KEYCLOAK_CLIENT_ID:luxe-ui}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET}
+            redirect-uri: ${OAUTH2_REDIRECT_URI:http://localhost:16801/bff/login/oauth2/code/keycloak}
+            scope:
+              - openid
+              - profile
+              - email
+              - roles
+          keycloak-admin:
+            provider: keycloak
+            client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:luxe-admin}
+            client-authentication-method: none
+            redirect-uri: ${OAUTH2_ADMIN_REDIRECT_URI:http://admin.localhost:16801/bff/login/oauth2/code/keycloak-admin}
+            scope:
+              - openid
+              - profile
+              - email
+              - roles
   cloud:
     gateway:
       server:
@@ -17,6 +50,7 @@ spring:
                 - Path=/luxe-api/**
               filters:
                 - RewritePath=/luxe-api/?(?<segment>.*), /$\{segment}
+                - TokenRelay=
             - id: luxe-admin
               uri: ${LUXE_ADMIN_URL:http://localhost:3001}
               predicates:
@@ -36,3 +70,7 @@ management:
     health:
       probes:
         enabled: true
+
+logging:
+  level:
+    org.springframework.security: INFO

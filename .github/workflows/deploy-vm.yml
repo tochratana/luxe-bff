@@ -86,20 +86,27 @@ jobs:
           scp deploy/compose.production.yaml \
             production-vm:luxe-bff/compose.yaml.next
 
-          ssh production-vm "bash -s -- '$BFF_IMAGE'" <<'REMOTE_SCRIPT'
+          ssh production-vm "bash -s -- '$BFF_IMAGE' '${{ secrets.KEYCLOAK_ISSUER_URI }}' '${{ secrets.KEYCLOAK_CLIENT_ID }}' '${{ secrets.KEYCLOAK_CLIENT_SECRET }}'" <<'REMOTE_SCRIPT'
           set -Eeuo pipefail
 
           image="$1"
+          kc_issuer="$2"
+          kc_client_id="$3"
+          kc_secret="$4"
           cd "$HOME/luxe-bff"
 
           docker network inspect luxe-net >/dev/null
 
-          BFF_IMAGE="$image" \
-            docker compose -f compose.yaml.next config --quiet
+          export BFF_IMAGE="$image"
+          export KEYCLOAK_ISSUER_URI="$kc_issuer"
+          export KEYCLOAK_CLIENT_ID="$kc_client_id"
+          export KEYCLOAK_CLIENT_SECRET="$kc_secret"
+
+          docker compose -f compose.yaml.next config --quiet
 
           mv compose.yaml.next compose.yaml
 
-          if ! BFF_IMAGE="$image" docker compose -f compose.yaml \
+          if ! docker compose -f compose.yaml \
             up -d \
             --pull always \
             --no-deps \
@@ -107,10 +114,9 @@ jobs:
             --wait \
             --wait-timeout 120 \
             bff; then
-            BFF_IMAGE="$image" \
-              docker compose -f compose.yaml logs --tail=200 bff
+            docker compose -f compose.yaml logs --tail=200 bff
             exit 1
           fi
 
-          BFF_IMAGE="$image" docker compose -f compose.yaml ps bff
+          docker compose -f compose.yaml ps bff
           REMOTE_SCRIPT
